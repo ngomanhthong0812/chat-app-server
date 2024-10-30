@@ -2,7 +2,6 @@ require('dotenv').config()
 
 const express = require('express')
 const initAPIRoutes = require('./routes/api');
-const initWebRoutes = require('./routes/web');
 const { createServer } = require('node:http');
 
 const db = require('./config/databse');
@@ -12,10 +11,17 @@ const host = process.env.PORT || 8000
 
 const app = express()
 const server = createServer(app);
+
+// Middleware để phân tích cú pháp x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true }));
+// Middleware để phân tích cú pháp JSON
 app.use(express.json());
 
 initAPIRoutes(app);
-initWebRoutes(app);
+
+app.use('/', (req, res) => {
+    res.send('Welcome to server');
+})
 
 setupSocket(server);
 

@@ -4,8 +4,9 @@ const userController = require('../controllers/userController');
 
 const initAPIRoutes = (app) => {
     // Đăng ký người dùng
-    router.post('/api/register', userController.registerUser);
-    
+    router.put('/register', userController.registerUser);
+    router.post('/login', userController.loginUser)
+
     return app.use('/api', router);
 }
 
