@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    .container {
+        max-width: 600px;
+    }
+
+    .my-chat {
+        background-color: blue;
+        color: white;
+        text-align: end;
+        display: flex;
+        align-items: center;
+        justify-content: end;
+        padding: 5px;
+    }
+
+    li {
+        display: flex;
+        align-items: center;
+    }
+
+    .chat-img {
+        width: 100px;
+    }
+</style>
+
+<body>
+    <a href="http://localhost:8080/index" class="container">
+        <h1>app chat1</h1>
+        <ul id="messages" style="background-color: blue; color: white;">
+            Hãy nhắn tin nào
+        </ul>
+    </a>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        const messages = document.getElementById('messages');
+
+        socket.emit('join-room', 123);
+
+        socket.on('user-chat', (msg) => {
+            messages.textContent = msg.name + ': ' + msg.message;
+        })
+        socket.on('user-chat-img', (msg) => {
+            console.log(msg);
+
+            messages.textContent = 'Đã gửi một ảnh';
+        })
+    </script>
+
+</body>
+
+<script src="/socket.io/socket.io.js"></script>
+
+
+</html>

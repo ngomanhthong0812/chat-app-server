@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    .container {
+        max-width: 600px;
+    }
+
+    .my-chat {
+        background-color: blue;
+        color: white;
+        text-align: end;
+        display: flex;
+        align-items: center;
+        justify-content: end;
+        padding: 5px;
+    }
+
+    li {
+        display: flex;
+        align-items: center;
+    }
+</style>
+
+<body>
+    <div class="container">
+        <h1>app chat1</h1>
+        <ul id="messages">
+        </ul>
+
+        <form action="" id="chat-form">
+            <input type="text" id="chat-mes">
+            <button id="sen-chat" autocomplete="off">Send</button>
+        </form>
+    </div>
+
+</body>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+
+    const name = prompt('Tên bạn là gì?');
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('chat-mes');
+    const fileInput = document.getElementById('fileInput');
+    const messages = document.getElementById('messages');
+
+    socket.emit('join-room', 123);
+
+    form.addEventListener('submit', (e) => {
+        event.preventDefault();
+        if (input.value) {
+            socket.emit('on-chat', {
+                message: input.value,
+                name: name,
+                room: 123,
+            });
+            const chatItem = document.createElement('li');
+            const chatText = document.createElement('span');
+            chatItem.className = 'my-chat';
+            chatText.textContent = input.value;
+            chatItem.appendChild(chatText);
+            messages.appendChild(chatItem);
+            window.scrollTo(0, window.innerHeight);
+
+            input.value = '';
+        }
+
+        if (fileInput.files.length > 0) {
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]); // Thêm file vào formData
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    socket.emit('on-chat-img', {
+                        name: name,
+                        room: 123,
+                        filePath: data.filePath
+                    });
+                    const chatItem = document.createElement('li'); // Tạo một phần tử li cho ảnh
+                    const chatImg = document.createElement('img'); // Tạo phần tử img
+                    chatItem.className = 'my-chat'; // Thêm class cho phần tử li
+                    chatImg.className = 'chat-img'; // Thêm class cho img (bạn có thể thêm CSS để định dạng)
+                    chatImg.src = data.filePath; // Đặt src là đường dẫn tới file ảnh
+                    chatImg.alt = 'Hình ảnh từ ' + data.message; // Thêm mô tả cho ảnh
+
+                    // Thêm ảnh vào chatItem và sau đó thêm chatItem vào messages
+                    chatItem.appendChild(chatImg);
+                    messages.appendChild(chatItem);
+
+                    window.scrollTo(0, window.innerHeight); // Cuộn đến cuối cùng
+
+                    fileInput.value = '';
+                })
+                .catch(error => {
+                    console.error('Lỗi:', error);
+                });
+        }
+    })
+
+
+    socket.on('user-chat', (msg) => {
+        const chatItem = document.createElement('li');
+        chatItem.textContent = msg.name + ':' + msg.message;
+        messages.appendChild(chatItem);
+
+        window.scrollTo(0, window.innerHeight);
+    })
+
+</script>
+
+
+
+</html>
