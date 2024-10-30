@@ -71,42 +71,7 @@
 
             input.value = '';
         }
-
-        if (fileInput.files.length > 0) {
-            const formData = new FormData();
-            formData.append('image', fileInput.files[0]); // Thêm file vào formData
-            fetch('/upload', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    socket.emit('on-chat-img', {
-                        name: name,
-                        room: 123,
-                        filePath: data.filePath
-                    });
-                    const chatItem = document.createElement('li'); // Tạo một phần tử li cho ảnh
-                    const chatImg = document.createElement('img'); // Tạo phần tử img
-                    chatItem.className = 'my-chat'; // Thêm class cho phần tử li
-                    chatImg.className = 'chat-img'; // Thêm class cho img (bạn có thể thêm CSS để định dạng)
-                    chatImg.src = data.filePath; // Đặt src là đường dẫn tới file ảnh
-                    chatImg.alt = 'Hình ảnh từ ' + data.message; // Thêm mô tả cho ảnh
-
-                    // Thêm ảnh vào chatItem và sau đó thêm chatItem vào messages
-                    chatItem.appendChild(chatImg);
-                    messages.appendChild(chatItem);
-
-                    window.scrollTo(0, window.innerHeight); // Cuộn đến cuối cùng
-
-                    fileInput.value = '';
-                })
-                .catch(error => {
-                    console.error('Lỗi:', error);
-                });
-        }
     })
-
 
     socket.on('user-chat', (msg) => {
         const chatItem = document.createElement('li');
