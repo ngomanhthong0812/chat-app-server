@@ -1,4 +1,4 @@
-require('dotenv').config()
+require("dotenv").config();
 
 const express = require('express');
 const cors = require('cors');
@@ -10,7 +10,7 @@ const storage = require('./config/firebaseStorage');
 const setupSocket = require('./socket/socket');
 const host = process.env.PORT || 8000
 
-const app = express()
+const app = express();
 const server = createServer(app);
 
 app.use(cors());// Cho phép tất cả các nguồn
@@ -19,9 +19,9 @@ app.use(express.json());// Middleware để phân tích cú pháp JSON
 
 initAPIRoutes(app);
 
-app.use('/', (req, res) => {
-    res.send('Welcome to server');
-})
+app.use("/", (req, res) => {
+    res.send("Welcome to server");
+});
 
 setupSocket(server);
 
