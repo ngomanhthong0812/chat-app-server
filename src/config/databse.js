@@ -16,4 +16,18 @@ const db = mysql.createPool({
     keepAliveInitialDelay: 0,
 });
 
+// Kiểm tra kết nối
+const testConnection = async () => {
+    try {
+        const connection = await db.getConnection();
+        console.log('Kết nối đến cơ sở dữ liệu thành công!');
+        connection.release(); // Giải phóng kết nối
+    } catch (error) {
+        console.error('Lỗi kết nối đến cơ sở dữ liệu:', error);
+    }
+};
+
+// Gọi hàm kiểm tra kết nối
+testConnection();
+
 module.exports = db;

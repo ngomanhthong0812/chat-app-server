@@ -24,7 +24,10 @@ const setupSocket = (server) => {
 
         // Gửi tin nhắn
         socket.on('send-message', (msg) => {
-            socket.to(msg.room).emit('receive-message', msg);
+            socket.to(msg.room).emit('receive-message', {
+                message: msg.message, //message => object chứa {content,image_url,video_url,file_url}
+                userId: socket.handshake.query.userID,
+            });
         });
 
         // Đánh dấu tin nhắn đã đọc

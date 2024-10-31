@@ -1,6 +1,6 @@
 require('dotenv').config();
-const firebase = require('firebase/app')
-require('firebase/auth');
+const { initializeApp } = require("firebase/app");
+const { getStorage, ref, uploadBytes, getDownloadURL } = require("firebase/storage");
 
 const firebaseConfig = {
     apiKey: process.env.FIREBASE_API_KEY,
@@ -10,8 +10,17 @@ const firebaseConfig = {
     messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.FIREBASE_APP_ID,
     measurementId: process.env.FIREBASE_MEASUREMENT_ID
-}
+};
 
-firebase.initializeApp(firebaseConfig);
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
 
-module.exports = firebase;
+// Initialize Cloud Storage and get a reference to the service
+const storage = getStorage(app);
+
+module.exports = {
+    storage,
+    ref,
+    uploadBytes,
+    getDownloadURL
+};

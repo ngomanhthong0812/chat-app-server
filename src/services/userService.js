@@ -1,4 +1,4 @@
-const userModel = require('../models/userModel');
+const userModel = require('../models/usersModel');
 
 const handleRegister = async (first_name, last_name, gender, password, email, birth_date, active_status) => {
     try {

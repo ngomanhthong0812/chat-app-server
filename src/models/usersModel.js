@@ -1,10 +1,10 @@
 const db = require('../config/databse');
 
-const createUser = async (first_name, last_name, gender, password, email, birth_date, active_statu) => {
+const createUser = async (first_name, last_name, gender, password, email, birth_date, active_status) => {
     try {
         const [result] = await db.execute(
             'INSERT INTO users (first_name, last_name, gender, password, email, birth_date, active_status) VALUES (?,?,?,?,?,?,?)',
-            [first_name, last_name, gender, password, email, birth_date, active_statu]
+            [first_name, last_name, gender, password, email, birth_date, active_status]
         );
         return result.insertId; // Trả về ID người dùng vừa tạo
     } catch (error) {
@@ -14,20 +14,20 @@ const createUser = async (first_name, last_name, gender, password, email, birth_
 
 const getAllUser = async () => {
     try {
-        const [result] = await db.execute(
+        const [users] = await db.execute(
             'SELECT * FROM `users`',
         );
-        return result;
+        return users;// Trả danh sách người dùng
     } catch (error) {
         throw new Error('Error get all users');
     }
 }
 
-const updateUser = async (user) => {
+const updateUser = async (id, first_name, last_name, gender, password, email, birth_date, active_status) => {
     try {
         const [result] = await db.execute(
             'UPDATE `users` SET first_name =?, last_name =?, gender =?, email =?, password =?, birth_date =? WHERE id =?',
-            [user.first_name, user.last_name, user.gender, user.email, user.password, user.birth_date, user.id]
+            [first_name, last_name, gender, password, email, birth_date, active_status, id]
         )
         return result.affectedRows > 0; // Trả về true nếu cập nhật thành công, false nếu không tồn tại user
     } catch (error) {
