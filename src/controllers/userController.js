@@ -1,5 +1,6 @@
 require('dotenv').config();
 const userService = require('../services/userService');
+const userModel = require('../models/usersModel');
 const jwt = require('jsonwebtoken');
 
 const registerUser = async (req, res) => {
@@ -45,6 +46,7 @@ const loginUser = async (req, res) => {
             res.status(200).json({
                 msg: 'Login successful',
                 token: token,
+                userId: user.id,
             })
         } else {
             res.status(400).json({
@@ -58,7 +60,29 @@ const loginUser = async (req, res) => {
     }
 }
 
+const getUserInfobyId = async (req, res) => {
+    const { token } = req.body;
+    const verifyToken = jwt.verify(token, process.env.JWT_SECRET);
+    try {
+        const user = await userModel.getUserbyId(verifyToken.id);
+        if (user) {
+            res.status(200).json({
+                msg: 'User infomation successful',
+                user
+            })
+        } else {
+            res.status(404).json({
+                msg: 'User not found',
+                email: email,
+            })
+        }
+    } catch (error) {
+        res.status(500).json({ msg: 'Server error' });
+    }
+}
+
 module.exports = {
     registerUser,
     loginUser,
+    getUserInfobyId,
 }

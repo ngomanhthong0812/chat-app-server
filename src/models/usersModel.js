@@ -77,10 +77,35 @@ const findEmail = async (email) => {
     throw new Error("Error checking email");
   }
 };
+
+const getUserbyId = async (id) => {
+  try {
+    const [user] = await db.execute("SELECT * FROM `users` WHERE id = ?", [
+      id,
+    ]);
+    return user;
+  } catch (error) {
+    throw new Error("Error:" + error.message);
+  }
+}
+
+const updateActiveStatusById = async (id, active_status) => {
+  try {
+    await db.execute(
+      "UPDATE `users` SET active_status = ? WHERE id =?",
+      [active_status, id]
+    );
+  } catch (error) {
+    throw new Error("Error updating active status");
+  }
+}
+
 module.exports = {
   createUser,
   getAllUser,
   updateUser,
   deleteUser,
   findEmail,
+  getUserbyId,
+  updateActiveStatusById,
 };
