@@ -17,7 +17,7 @@ const handleRegister = async (
       return null;
     }
     const avatar =
-      "https://cellphones.com.vn/sforum/wp-content/uploads/2023/10/avatar-trang-4.jpg";
+      "https://firebasestorage.googleapis.com/v0/b/chat-app-c83bc.appspot.com/o/avatars%2Favatar-default.jpg?alt=media&token=11bd1e02-105f-4405-9e69-1f8636381ab9";
     const userId = await userModel.createUser(
       first_name,
       last_name,
