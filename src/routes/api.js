@@ -6,7 +6,7 @@ const initAPIRoutes = (app) => {
     // Đăng ký người dùng
     router.put('/register', userController.registerUser);
     router.post('/login', userController.loginUser);
-    router.post('/userInfo', userController.getUserInfobyId);
+    router.get('/userInfo', userController.getUserInfobyToken);
 
     return app.use('/api', router);
 }

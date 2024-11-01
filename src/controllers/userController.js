@@ -60,7 +60,7 @@ const loginUser = async (req, res) => {
     }
 }
 
-const getUserInfobyId = async (req, res) => {
+const getUserInfobyToken = async (req, res) => {
     const { token } = req.body;
     const verifyToken = jwt.verify(token, process.env.JWT_SECRET);
     try {
@@ -84,5 +84,5 @@ const getUserInfobyId = async (req, res) => {
 module.exports = {
     registerUser,
     loginUser,
-    getUserInfobyId,
+    getUserInfobyToken,
 }
