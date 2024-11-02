@@ -42,7 +42,7 @@ const loginUser = async (req, res) => {
         const user = await userService.handleLogin(email, password);
 
         if (user) {
-            const token = jwt.sign(user, process.env.JWT_SECRET);
+            const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET);
             res.status(200).json({
                 msg: 'Login successful',
                 token: token,
@@ -60,7 +60,17 @@ const loginUser = async (req, res) => {
     }
 }
 
-const getUserInfobyToken = async (req, res) => {
+const logoutUser = async (req, res) => {
+    if (req.method === 'POST') {
+        res.status(200).json({ message: 'Logged out successfully' });
+    } else {
+        res.setHeader('Allow', ['POST']);
+        res.status(405).end(`Method ${req.method} Not Allowed`);
+    }
+}
+
+
+const getUserInfo = async (req, res) => {
     const { token } = req.body;
     const verifyToken = jwt.verify(token, process.env.JWT_SECRET);
     try {
@@ -84,5 +94,6 @@ const getUserInfobyToken = async (req, res) => {
 module.exports = {
     registerUser,
     loginUser,
-    getUserInfobyToken,
+    getUserInfo,
+    logoutUser,
 }
