@@ -1,4 +1,4 @@
-const db = require("../config/database");
+const db = require("../config/databse");
 
 // Thêm tin nhắn mới
 function createMessage(
@@ -90,22 +90,24 @@ function deleteMessage(id, callback) {
   });
 }
 
-// Lấy tin nhắn giữa hai người dùng
-function getPrivateChat(user_id, chat_id, callback) {
+// Lấy tin nhắn giữa hai người dùng bằng Promise
+function getPrivateChat(user_id, chat_id) {
   const query = `
-    SELECT m.id, m.content, m.sent_at, m.image_url, m.video_url, m.file_url, 
-           u.first_name, u.last_name 
-    FROM messages m
-    JOIN user_chat uc ON m.chat_id = uc.chat_id
-    JOIN users u ON m.user_id = u.id
-    WHERE uc.user_id = ? AND m.chat_id = ?
-    ORDER BY m.sent_at ASC
+      SELECT m.id, m.content, m.sent_at, m.image_url, m.video_url, m.file_url, 
+             u.first_name, u.last_name 
+      FROM messages m
+      JOIN user_chat uc ON m.chat_id = uc.chat_id
+      JOIN users u ON m.user_id = u.id
+      WHERE uc.user_id = ? AND m.chat_id = ?
+      ORDER BY m.sent_at ASC
   `;
-  db.query(query, [user_id, chat_id], (error, results) => {
-    if (error) {
-      return callback(error);
-    }
-    callback(null, results);
+  return new Promise((resolve, reject) => {
+    db.query(query, [user_id, chat_id], (error, results) => {
+      if (error) {
+        return reject(error);
+      }
+      resolve(results);
+    });
   });
 }
 
