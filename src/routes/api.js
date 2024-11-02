@@ -19,6 +19,7 @@ const initAPIRoutes = (app) => {
     authMiddleware,
     messageController.getPrivateMessages
   );
+  console.log("test lỗi push");
 
   return app.use("/api", router);
 };
