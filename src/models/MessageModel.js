@@ -1,4 +1,4 @@
-const db = require("../config/database");
+const db = require("../config/databse");
 
 // Thêm tin nhắn mới
 function createMessage(
@@ -90,24 +90,51 @@ function deleteMessage(id, callback) {
   });
 }
 
-// Lấy tin nhắn giữa hai người dùng
-function getPrivateChat(user_id, chat_id, callback) {
+const getPrivateChat = async (user_id, chat_id) => {
+  console.log("Lấy ID user_id:", user_id);
+  console.log("Lấy ID chat_id:", chat_id);
+
+  // Kiểm tra đầu vào
+  if (!user_id || !chat_id) {
+    throw new Error("user_id và chat_id không được để trống.");
+  }
+
   const query = `
-    SELECT m.id, m.content, m.sent_at, m.image_url, m.video_url, m.file_url, 
-           u.first_name, u.last_name 
-    FROM messages m
-    JOIN user_chat uc ON m.chat_id = uc.chat_id
-    JOIN users u ON m.user_id = u.id
-    WHERE uc.user_id = ? AND m.chat_id = ?
-    ORDER BY m.sent_at ASC
+            SELECT 
+          u.id AS user_id,
+          CONCAT(u.first_name, ' ', u.last_name) AS sender_name, -- Kết hợp first_name và last_name
+          m.id AS message_id,
+          m.content AS message_content,
+          m.sent_at AS message_sent_at,
+          m.image_url AS message_image_url,
+          m.video_url AS message_video_url,
+          m.file_url AS message_file_url
+      FROM messages m
+      JOIN user_chat uc ON m.chat_id = uc.chat_id
+      JOIN users u ON m.user_id = u.id
+      WHERE uc.user_id = ? AND m.chat_id = ?
+      ORDER BY m.sent_at ASC;
   `;
-  db.query(query, [user_id, chat_id], (error, results) => {
-    if (error) {
-      return callback(error);
+
+  try {
+    const [results] = await db.execute(query, [user_id, chat_id]);
+
+    if (results.length === 0) {
+      console.log(
+        "Không tìm thấy tin nhắn cho userId:",
+        user_id,
+        "và chatId:",
+        chat_id
+      );
+      return []; // Trả về mảng rỗng nếu không có tin nhắn
     }
-    callback(null, results);
-  });
-}
+
+    console.log("Kết quả truy vấn:", results); // In ra kết quả
+    return results; // Trả về kết quả
+  } catch (error) {
+    throw new Error("Lỗi: " + error.message);
+  }
+};
 
 module.exports = {
   createMessage,
