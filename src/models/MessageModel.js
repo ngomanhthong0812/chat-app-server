@@ -102,38 +102,44 @@ const getPrivateChat = async (user_id, other_user_id, chat_id) => {
 
   try {
     const query = `
-    SELECT 
-        u.id AS user_id,
-        CONCAT(u.first_name, ' ', u.last_name) AS sender_name,
-        u.avatar_url AS avatar_url,  /* Lấy avatar_url */
-        m.id AS message_id,
-        m.content AS message_content,
-        m.sent_at AS message_sent_at,
-        m.image_url AS message_image_url,
-        m.video_url AS message_video_url,
-        m.file_url AS message_file_url,
-        c.id AS chat_id,
-        CASE 
-            WHEN u.id = ? THEN (SELECT CONCAT(u2.first_name, ' ', u2.last_name) FROM users u2 WHERE u2.id = ?) 
-            ELSE (SELECT CONCAT(u.first_name, ' ', u.last_name) FROM users u WHERE u.id = ?) 
-        END AS chat_name
-    FROM messages m
-    JOIN user_chat uc ON m.chat_id = uc.chat_id
-    JOIN users u ON m.user_id = u.id
-    JOIN chats c ON m.chat_id = c.id
-    WHERE m.chat_id = ? 
-      AND (m.user_id = ? OR m.user_id = ?)
-    ORDER BY m.sent_at ASC;
-  `;
+      SELECT DISTINCT
+    u.id AS user_id,
+    CONCAT(u.first_name, ' ', u.last_name) AS sender_name,
+    u.avatar_url AS avatar_url,
+    m.id AS message_id,
+    m.content AS message_content,
+    m.sent_at AS message_sent_at,
+    m.image_url AS message_image_url,
+    m.video_url AS message_video_url,
+    m.file_url AS message_file_url,
+    c.id AS chat_id,
+    CASE 
+        WHEN u.id = ? THEN (SELECT CONCAT(other.first_name, ' ', other.last_name) FROM users other WHERE other.id = ?)
+        ELSE (SELECT CONCAT(u.first_name, ' ', u.last_name) FROM users u WHERE u.id = ?)
+    END AS chat_name,
+    CASE
+        WHEN u.id = ? THEN other.avatar_url  -- Lấy avatar của other_user nếu user_id là người gửi
+        ELSE u.avatar_url  -- Lấy avatar của user nếu user_id là người gửi
+    END AS other_avatar_url
+FROM messages m
+JOIN users u ON m.user_id = u.id
+JOIN chats c ON m.chat_id = c.id
+LEFT JOIN users other ON other.id = ?  -- Để lấy avatar_url của người khác
+WHERE m.chat_id = ? 
+    AND (m.user_id = ? OR m.user_id = ?)
+ORDER BY m.sent_at ASC;  -- Sắp xếp theo thời gian gửi từ cũ đến mới
+    `;
 
     // Thay thế các tham số vào truy vấn
     const [results] = await db.execute(query, [
-      user_id,
-      other_user_id,
-      user_id,
-      chat_id, // Sử dụng chat_id ở đây
-      user_id,
-      other_user_id,
+      user_id, // Giá trị của `user_id` đầu tiên
+      other_user_id, // Giá trị của `other_user_id` đầu tiên
+      user_id, // Giá trị của `user_id` thứ hai
+      user_id, // Giá trị của `user_id` thứ ba (để lấy avatar_url của người khác)
+      other_user_id, // Giá trị của `other_user_id` (để lấy avatar_url)
+      chat_id, // Giá trị của `chat_id`
+      user_id, // Giá trị của `user_id` thứ tư
+      other_user_id, // Giá trị của `other_user_id` thứ hai
     ]);
 
     if (results.length === 0) {
@@ -147,17 +153,21 @@ const getPrivateChat = async (user_id, other_user_id, chat_id) => {
     }
 
     // Lấy tên đoạn chat từ kết quả
-    const chat_name = results[0].chat_name;
+    const chat_name =
+      user_id === results[0].user_id
+        ? results[0].chat_name
+        : results[0].sender_name;
 
     // Tạo đối tượng kết quả trả về theo định dạng mong muốn
     const response = {
-      room_id: chat_id, // Sử dụng chat_id từ tham số
-      name_rom: chat_name,
-      avatar_url: results[0].avatar_url, // Nếu bạn muốn đưa avatar của người gửi đầu tiên vào phản hồi
+      room_id: results[0].chat_id, // Lấy chat_id từ kết quả
+      name_room: chat_name, // Sử dụng tên đoạn chat đã lấy
+      user_id: results[0].user_id === user_id ? other_user_id : user_id, // Lấy user_id của người khác từ kết quả
+      avatar_url: results[0].other_avatar_url, // Avatar của người khác
       message: results.map((msg) => ({
         user_id: msg.user_id,
         sender_name: msg.sender_name,
-        avatar_url: msg.avatar_url, // Thêm avatar_url vào mỗi tin nhắn
+        avatar_url: msg.avatar_url, // Avatar của người gửi
         message_id: msg.message_id,
         message_content: msg.message_content,
         message_sent_at: msg.message_sent_at,
