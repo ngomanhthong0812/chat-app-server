@@ -15,7 +15,7 @@ const initAPIRoutes = (app) => {
   router.post("/logout", userController.logoutUser);
   // Route lấy tin nhắn riêng tư
   router.get(
-    "/messager/:chatId",
+    "/messager/:chatId/:otherUserId",
     authMiddleware,
     messageController.getPrivateMessages
   );
