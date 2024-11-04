@@ -90,90 +90,99 @@ function deleteMessage(id, callback) {
   });
 }
 
-const getPrivateChat = async (user_id, other_user_id, chat_id) => {
-  console.log("Lấy ID user_id:", user_id);
-  console.log("Lấy ID chat_id:", chat_id);
-  console.log("Lấy ID other_user_id:", other_user_id);
-
+const getPrivateChat = async (user_id, chat_id) => {
   // Kiểm tra đầu vào
-  if (!user_id || !chat_id || !other_user_id) {
-    throw new Error("user_id, other_user_id và chat_id không được để trống.");
+  console.log("test id " + user_id + " " + chat_id);
+
+  if (!user_id || !chat_id) {
+    throw new Error("user_id và chat_id không được để trống.");
   }
 
   try {
-    const query = `
-      SELECT DISTINCT
-    u.id AS user_id,
-    CONCAT(u.first_name, ' ', u.last_name) AS sender_name,
-    u.avatar_url AS avatar_url,
-    m.id AS message_id,
-    m.content AS message_content,
-    m.sent_at AS message_sent_at,
-    m.image_url AS message_image_url,
-    m.video_url AS message_video_url,
-    m.file_url AS message_file_url,
-    c.id AS chat_id,
-    CASE 
-        WHEN u.id = ? THEN (SELECT CONCAT(other.first_name, ' ', other.last_name) FROM users other WHERE other.id = ?)
-        ELSE (SELECT CONCAT(u.first_name, ' ', u.last_name) FROM users u WHERE u.id = ?)
-    END AS chat_name,
-    CASE
-        WHEN u.id = ? THEN other.avatar_url  -- Lấy avatar của other_user nếu user_id là người gửi
-        ELSE u.avatar_url  -- Lấy avatar của user nếu user_id là người gửi
-    END AS other_avatar_url
-FROM messages m
-JOIN users u ON m.user_id = u.id
-JOIN chats c ON m.chat_id = c.id
-LEFT JOIN users other ON other.id = ?  -- Để lấy avatar_url của người khác
-WHERE m.chat_id = ? 
-    AND (m.user_id = ? OR m.user_id = ?)
-ORDER BY m.sent_at ASC;  -- Sắp xếp theo thời gian gửi từ cũ đến mới
+    // Truy vấn để lấy thông tin tin nhắn
+    const messagesQuery = `
+      SELECT
+        us.id AS user_id,
+        us.first_name,
+        us.last_name,
+        us.avatar_url,
+        msg.id AS message_id,
+        msg.chat_id,
+        msg.content AS message_content,
+        msg.image_url,
+        msg.video_url,
+        msg.file_url,
+        msg.sent_at AS message_sent_at,
+        msg.seen_at,
+        msg.is_read,
+        CASE 
+            WHEN us.id = ? THEN 'yes' 
+            ELSE 'no' 
+        END AS is_my_message
+      FROM
+        users us
+      JOIN
+        messages msg ON us.id = msg.user_id
+      WHERE 
+        msg.chat_id = ?;
     `;
 
     // Thay thế các tham số vào truy vấn
-    const [results] = await db.execute(query, [
-      user_id, // Giá trị của `user_id` đầu tiên
-      other_user_id, // Giá trị của `other_user_id` đầu tiên
-      user_id, // Giá trị của `user_id` thứ hai
-      user_id, // Giá trị của `user_id` thứ ba (để lấy avatar_url của người khác)
-      other_user_id, // Giá trị của `other_user_id` (để lấy avatar_url)
-      chat_id, // Giá trị của `chat_id`
-      user_id, // Giá trị của `user_id` thứ tư
-      other_user_id, // Giá trị của `other_user_id` thứ hai
+    const [results_message] = await db.execute(messagesQuery, [
+      user_id,
+      chat_id,
     ]);
 
-    if (results.length === 0) {
-      console.log(
-        "Không tìm thấy tin nhắn cho userId:",
-        user_id,
-        "và chatId:",
-        chat_id
-      );
-      return { code: 200, data: [] }; // Trả về mảng rỗng nếu không có tin nhắn
+    // Kiểm tra nếu không có kết quả
+    if (results_message.length === 0) {
+      console.log("Không tìm thấy tin nhắn nào cho chat_id:", chat_id);
+      return {
+        room_id: chat_id,
+        name_room: "Chat Room", // Tên phòng mặc định nếu không có tin nhắn
+        users: [], // Không có người dùng
+        message: [],
+      };
     }
 
-    // Lấy tên đoạn chat từ kết quả
-    const chat_name =
-      user_id === results[0].user_id
-        ? results[0].chat_name
-        : results[0].sender_name;
+    // Truy vấn để lấy thông tin người dùng trong chat
+    const usersQuery = `
+      SELECT
+        us.id AS user_id,
+        us.first_name,
+        us.last_name,
+        us.avatar_url,
+        us.active_status
+      FROM
+        users us
+      JOIN
+        user_chat uc ON us.id = uc.user_id
+      WHERE 
+        uc.chat_id = ? AND uc.user_id != ?;  -- Lấy thông tin người dùng khác
+    `;
 
-    // Tạo đối tượng kết quả trả về theo định dạng mong muốn
+    // Thay thế các tham số vào truy vấn
+    const [results_users] = await db.execute(usersQuery, [chat_id, user_id]);
+
+    // Tạo phản hồi
     const response = {
-      room_id: results[0].chat_id, // Lấy chat_id từ kết quả
-      name_room: chat_name, // Sử dụng tên đoạn chat đã lấy
-      user_id: results[0].user_id === user_id ? other_user_id : user_id, // Lấy user_id của người khác từ kết quả
-      avatar_url: results[0].other_avatar_url, // Avatar của người khác
-      message: results.map((msg) => ({
+      users: results_users.map((user) => ({
+        room_id: results_message[0].chat_id, // Lấy chat_id từ kết quả
+        user_id: user.user_id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        avatar_url: user.avatar_url,
+        active_status: user.active_status,
+      })), // Thêm danh sách người dùng khác vào phản hồi
+      message: results_message.map((msg) => ({
         user_id: msg.user_id,
-        sender_name: msg.sender_name,
+        sender_name: msg.first_name + " " + msg.last_name, // Kết hợp first_name và last_name
         avatar_url: msg.avatar_url, // Avatar của người gửi
         message_id: msg.message_id,
         message_content: msg.message_content,
         message_sent_at: msg.message_sent_at,
-        message_image_url: msg.message_image_url,
-        message_video_url: msg.message_video_url,
-        message_file_url: msg.message_file_url,
+        message_image_url: msg.image_url,
+        message_video_url: msg.video_url,
+        message_file_url: msg.file_url,
       })),
     };
 
