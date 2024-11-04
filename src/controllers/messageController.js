@@ -4,15 +4,11 @@ const { successResponse, errorResponse } = require("../utils/responseHelper");
 // Lấy tin nhắn riêng tư giữa hai người dùng
 const getPrivateMessages = async (req, res) => {
   const userId = req.userId; // Lấy từ middleware
-  const otherUserId = req.params.otherUserId; // Lấy otherUserId từ URL
+
   const chatId = req.params.chatId; // Lấy chatId từ URL
 
   try {
-    const messages = await messageService.getMessages(
-      userId,
-      otherUserId,
-      chatId
-    );
+    const messages = await messageService.getMessages(userId, chatId);
     console.log("Messages: ", messages); // Cải thiện ghi log
 
     // Trả về phản hồi thành công
