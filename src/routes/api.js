@@ -8,7 +8,7 @@ const authMiddleware = require("../middleware/auth");
 const initAPIRoutes = (app) => {
   router.put("/register", userController.registerUser);
   router.post("/login", userController.loginUser);
-  router.get("/userInfo", userController.getUserInfo);
+  router.get("/userInfo/:user_id", userController.getUserInfo);
   router.post("/chatList", chatGroupController.chatList);
   router.post("/activeStatusChat", chatGroupController.activeStatusChat);
   router.post("/activeStatusGroup", chatGroupController.activeStatusGroup);
