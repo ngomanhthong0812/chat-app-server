@@ -19,6 +19,12 @@ const initAPIRoutes = (app) => {
     authMiddleware,
     messageController.getPrivateMessages
   );
+  router.get(
+    "/group/:groupId",
+    authMiddleware,
+    messageController.getGroupMessages
+  );
+
   console.log("test lỗi push");
 
   return app.use("/api", router);

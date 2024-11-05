@@ -191,6 +191,113 @@ const getPrivateChat = async (user_id, chat_id) => {
     throw new Error("Lỗi: " + error.message);
   }
 };
+const getGroupChat = async (user_id, group_id) => {
+  // Kiểm tra đầu vào
+  console.log("test id " + user_id + " " + group_id);
+
+  if (!user_id || !group_id) {
+    throw new Error("user_id và group_id không được để trống.");
+  }
+
+  try {
+    // Truy vấn để kiểm tra xem người dùng có tham gia vào nhóm không
+    const userCheckQuery = `
+      SELECT COUNT(*) AS count
+      FROM user_group
+      WHERE user_id = ? AND group_id = ?;
+    `;
+
+    const [userCheckResult] = await db.execute(userCheckQuery, [
+      user_id,
+      group_id,
+    ]);
+
+    // Nếu người dùng không tham gia vào nhóm, trả về thông báo
+    if (userCheckResult[0].count === 0) {
+      return {
+        message: "Người dùng không tham gia vào nhóm này.",
+      };
+    }
+
+    // Truy vấn để lấy tên nhóm
+    const groupQuery = `
+      SELECT
+        g.id AS group_id,
+        g.group_name,
+        g.avatar_url
+      FROM
+        groups g
+      WHERE
+        g.id = ?;
+    `;
+
+    const [groupResult] = await db.execute(groupQuery, [group_id]);
+
+    if (groupResult.length === 0) {
+      return {
+        message: "Không tìm thấy nhóm với group_id: " + group_id,
+      };
+    }
+
+    const groupInfo = groupResult[0];
+
+    // Truy vấn để lấy thông tin tin nhắn trong nhóm
+    const messagesQuery = `
+      SELECT
+        us.id AS user_id,
+        us.first_name,
+        us.last_name,
+        us.avatar_url,
+        msg.id AS message_id,
+        msg.group_id,
+        msg.content AS message_content,
+        msg.image_url,
+        msg.video_url,
+        msg.file_url,
+        msg.sent_at AS message_sent_at,
+        msg.seen_at,
+        msg.is_read
+      FROM
+        users us
+      JOIN
+        messages msg ON us.id = msg.user_id
+      WHERE 
+        msg.group_id = ?; 
+    `;
+
+    // Thay thế các tham số vào truy vấn
+    const [results_message] = await db.execute(messagesQuery, [group_id]);
+
+    // Kiểm tra nếu không có kết quả tin nhắn
+    if (results_message.length === 0) {
+      console.log("Không tìm thấy tin nhắn nào cho group_id:", group_id);
+    }
+
+    // Tạo phản hồi
+    const response = {
+      group_id: groupInfo.group_id,
+      group_name: groupInfo.group_name,
+      avatar_url: groupInfo.avatar_url,
+      messages: results_message.map((msg) => ({
+        message_id: msg.message_id,
+        message_content: msg.message_content,
+        message_sent_at: msg.message_sent_at,
+        message_image_url: msg.image_url,
+        message_video_url: msg.video_url,
+        message_file_url: msg.file_url,
+        sender: {
+          user_id: msg.user_id,
+          sender_name: msg.first_name + " " + msg.last_name,
+          avatar_url: msg.avatar_url,
+        },
+      })),
+    };
+
+    return response; // Trả về kết quả
+  } catch (error) {
+    throw new Error("Lỗi: " + error.message);
+  }
+};
 
 module.exports = {
   createMessage,
@@ -199,4 +306,5 @@ module.exports = {
   updateMessage,
   deleteMessage,
   getPrivateChat,
+  getGroupChat,
 };
