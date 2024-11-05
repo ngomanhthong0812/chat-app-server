@@ -7,8 +7,7 @@ const { createServer } = require('node:http');
 
 const db = require('./config/databse');
 const storage = require('./config/firebaseStorage');
-const setupMessageSocket = require('./socket/messageSocket');
-const setupVideoSocket = require('./socket/videoSocket');
+const setupSocket = require('./config/setupSocket');
 const host = process.env.PORT || 8000
 
 const app = express();
@@ -24,8 +23,7 @@ app.use("/", (req, res) => {
     res.send("Welcome to server");
 });
 
-setupMessageSocket(server);
-setupVideoSocket(server);
+setupSocket(server);
 
 server.listen(host, () => {
     console.log(`Server is running on http://localhost:${host}`);
