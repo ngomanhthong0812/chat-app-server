@@ -14,13 +14,13 @@ const initAPIRoutes = (app) => {
   router.post("/activeStatusGroup", chatGroupController.activeStatusGroup);
   router.post("/logout", userController.logoutUser);
   // Route lấy tin nhắn riêng tư
-  router.get(
-    "/messager/:chatId",
+  router.post(
+    "/messagesprivate",
     authMiddleware,
     messageController.getPrivateMessages
   );
-  router.get(
-    "/group/:groupId",
+  router.post(
+    "/groupmessages",
     authMiddleware,
     messageController.getGroupMessages
   );

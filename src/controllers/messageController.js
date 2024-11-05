@@ -5,10 +5,10 @@ const { successResponse, errorResponse } = require("../utils/responseHelper");
 const getPrivateMessages = async (req, res) => {
   const userId = req.userId; // Lấy từ middleware
 
-  const chatId = req.params.chatId; // Lấy chatId từ URL
+  const { chat_id } = req.body; // Lấy chatId từ URL
 
   try {
-    const messages = await messageService.getMessages(userId, chatId);
+    const messages = await messageService.getMessages(userId, chat_id);
     console.log("Messages: ", messages); // Cải thiện ghi log
 
     // Trả về phản hồi thành công
@@ -23,7 +23,7 @@ const getPrivateMessages = async (req, res) => {
 const getGroupMessages = async (req, res) => {
   const userId = req.userId; // Lấy từ middleware
 
-  const groupId = req.params.groupId; // Lấy chatId từ URL
+  const groupId = req.body.groupId; // Lấy chatId từ URL
 
   try {
     const messages = await messageService.getMessagesGroup(userId, groupId);

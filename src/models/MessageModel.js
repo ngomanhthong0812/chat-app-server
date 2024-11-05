@@ -275,9 +275,13 @@ const getGroupChat = async (user_id, group_id) => {
 
     // Tạo phản hồi
     const response = {
-      group_id: groupInfo.group_id,
-      group_name: groupInfo.group_name,
-      avatar_url: groupInfo.avatar_url,
+      group: [
+        {
+          group_id: groupInfo.group_id,
+          group_name: groupInfo.group_name,
+          avatar_url: groupInfo.avatar_url,
+        },
+      ],
       messages: results_message.map((msg) => ({
         message_id: msg.message_id,
         message_content: msg.message_content,
@@ -285,11 +289,15 @@ const getGroupChat = async (user_id, group_id) => {
         message_image_url: msg.image_url,
         message_video_url: msg.video_url,
         message_file_url: msg.file_url,
-        sender: {
-          user_id: msg.user_id,
-          sender_name: msg.first_name + " " + msg.last_name,
-          avatar_url: msg.avatar_url,
-        },
+        message_id: msg.message_id,
+        message_content: msg.message_content,
+        message_sent_at: msg.message_sent_at,
+        message_image_url: msg.image_url,
+        message_video_url: msg.video_url,
+        message_file_url: msg.file_url,
+        user_id: msg.user_id,
+        sender_name: msg.first_name + " " + msg.last_name,
+        avatar_url: msg.avatar_url,
       })),
     };
 
