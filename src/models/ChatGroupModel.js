@@ -9,7 +9,7 @@ const getChatListByUserId = async function (user_id) {
                 msg.*,
                 sender.last_name AS sender_last_name,
                 sender.first_name AS sender_first_name,
-                GROUP_CONCAT(DISTINCT us2.first_name, '', us2.last_name) AS participants,
+                GROUP_CONCAT(DISTINCT us2.first_name, ' ', us2.last_name) AS participants,
                 GROUP_CONCAT(DISTINCT us2.avatar_url) AS participants_avatar_url
             FROM users us
             JOIN user_chat uc ON uc.user_id = us.id
