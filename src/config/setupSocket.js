@@ -14,6 +14,7 @@ const setupSocket = (server) => {
 
     io.on('connection', (socket) => {
         const userID = socket.handshake.query.userID;
+        console.log("người dùng kết nối vs id " + userID);
 
         // Thiết lập sự kiện cho tin nhắn
         setupMessageSocket(socket, userID, io);

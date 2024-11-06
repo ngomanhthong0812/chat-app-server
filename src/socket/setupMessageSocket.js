@@ -7,6 +7,12 @@ const setupMessageSocket = (socket, userID, io) => {
         console.log(`Người dùng ${userID} đã tham gia phòng ${room}`);
     });
 
+    // Xử lý khi người dùng rời khỏi phòng
+    socket.on(' ', (roomId) => {
+        socket.leave(roomId);
+        console.log(`User ${socket.id} left room: ${roomId}`);
+    });
+
     // Gửi tin nhắn
     socket.on('send-message', (msg) => {
         console.log("tin nhắn " + JSON.stringify(msg));

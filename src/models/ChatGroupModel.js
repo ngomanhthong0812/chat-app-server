@@ -6,7 +6,17 @@ const getChatListByUserId = async function (user_id) {
             SELECT
                 c.avatar_url,
                 c.chat_name,
-                msg.*,
+                msg.id,
+                msg.user_id,
+                msg.chat_id,
+                c.id AS chat_id,
+                msg.content,
+                msg.image_url,
+                msg.video_url,
+                msg.file_url,
+                msg.sent_at,
+                msg.seen_at,
+                msg.is_read,
                 sender.last_name AS sender_last_name,
                 sender.first_name AS sender_first_name,
                 GROUP_CONCAT(DISTINCT us2.first_name, ' ', us2.last_name) AS participants,
@@ -18,13 +28,12 @@ const getChatListByUserId = async function (user_id) {
             JOIN users sender ON msg.user_id = sender.id
             JOIN user_chat uc2 ON uc2.chat_id = c.id AND uc2.user_id != us.id
             JOIN users us2 ON uc2.user_id = us2.id
-            WHERE
-                us.id = ? AND
-                msg.sent_at = (
-                    SELECT MAX(sent_at)
-                    FROM messages
-                    WHERE chat_id = c.id
-                )
+            WHERE us.id = ? 
+              AND msg.sent_at = (
+                  SELECT MAX(sent_at)
+                  FROM messages
+                  WHERE chat_id = c.id
+              )
             GROUP BY c.id, msg.id;
         `, [user_id]);
 
@@ -32,7 +41,17 @@ const getChatListByUserId = async function (user_id) {
             SELECT
                 g.avatar_url,
                 g.group_name AS chat_name,
-                msg.*,
+                msg.id,
+                msg.user_id,
+                msg.chat_id,
+                g.id AS group_id,
+                msg.content,
+                msg.image_url,
+                msg.video_url,
+                msg.file_url,
+                msg.sent_at,
+                msg.seen_at,
+                msg.is_read,
                 sender.last_name AS sender_last_name,
                 sender.first_name AS sender_first_name,
                 GROUP_CONCAT(DISTINCT us2.first_name, ' ', us2.last_name) AS participants,
@@ -40,18 +59,16 @@ const getChatListByUserId = async function (user_id) {
             FROM users us
             JOIN user_group ug ON ug.user_id = us.id
             JOIN groups g ON ug.group_id = g.id
-            JOIN messages msg ON g.id = msg.group_id
-            JOIN users sender ON msg.user_id = sender.id
+            LEFT JOIN messages msg ON g.id = msg.group_id AND msg.sent_at = (
+                SELECT MAX(sent_at)
+                FROM messages
+                WHERE group_id = g.id
+            )
+            LEFT JOIN users sender ON msg.user_id = sender.id
             JOIN user_group ug2 ON ug2.group_id = g.id AND ug2.user_id != us.id
             JOIN users us2 ON ug2.user_id = us2.id
-            WHERE
-                us.id = ? AND
-                msg.sent_at = (
-                    SELECT MAX(sent_at)
-                    FROM messages
-                    WHERE group_id = g.id
-                )
-                GROUP BY g.id, msg.id;
+            WHERE us.id = ?
+            GROUP BY g.id;
         `, [user_id]);
 
         return chats.concat(groups); // Trả về danh sách chat và nhóm
