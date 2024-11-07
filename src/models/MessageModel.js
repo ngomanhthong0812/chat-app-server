@@ -4,6 +4,7 @@ const db = require("../config/databse");
 function createMessage(
   user_id,
   chat_id,
+  group_id,
   content,
   image_url,
   video_url,
@@ -11,12 +12,12 @@ function createMessage(
   callback
 ) {
   const query = `
-    INSERT INTO messages (user_id, chat_id, content, image_url, video_url, file_url, sent_at, is_read) 
-    VALUES (?, ?, ?, ?, ?, ?, NOW(), false)
+    INSERT INTO messages (user_id, chat_id,group_id, content, image_url, video_url, file_url, sent_at, is_read)
+    VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), false)
   `;
   db.query(
     query,
-    [user_id, chat_id, content, image_url, video_url, file_url],
+    [user_id, chat_id, group_id, content, image_url, video_url, file_url],
     (error, results) => {
       if (error) {
         return callback(error);
@@ -25,6 +26,7 @@ function createMessage(
         id: results.insertId,
         user_id,
         chat_id,
+        group_id,
         content,
         image_url,
         video_url,
